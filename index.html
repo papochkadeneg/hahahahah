@@ -33,7 +33,6 @@
     font-size:clamp(2.8rem,14.5vw,7rem);color:transparent;-webkit-text-stroke:1.6px var(--bone);
     filter:drop-shadow(0 0 22px rgba(225,29,46,.4));animation:rise .9s cubic-bezier(.2,.7,.2,1) both}
   h1 span{display:block}
-  h1 span+span{padding-left:.6em}
 
   .hours{font-weight:600;font-size:1.05rem;opacity:.8}
 
@@ -42,7 +41,6 @@
     box-shadow:0 10px 34px rgba(225,29,46,.38);transition:transform .2s,box-shadow .2s}
   .steam:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(225,29,46,.55)}
   .steam:focus-visible{outline:3px solid #fff;outline-offset:3px}
-
 
   .sound{position:fixed;z-index:3;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));
     padding:11px 16px;border-radius:999px;background:rgba(14,6,9,.55);color:var(--bone);border:1px solid rgba(255,255,255,.16);
@@ -64,7 +62,6 @@
   @keyframes drift{to{transform:translate(18vw,-4vh) scale(1.15)}}
   .g-nick{position:relative;font-family:var(--display);font-weight:800;font-size:clamp(1.5rem,7.5vw,2.8rem);letter-spacing:-.02em;
     color:transparent;-webkit-text-stroke:1.2px var(--bone);filter:drop-shadow(0 0 16px rgba(225,29,46,.45))}
-  .g-hint{position:relative;font-size:.8rem;color:rgba(243,236,232,.5);margin-top:-12px}
   .go{position:relative;z-index:1;font:800 1.05rem var(--text);letter-spacing:.06em;color:var(--bone);background:rgba(14,6,9,.62);
     border:0;border-radius:999px;padding:21px 54px;cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent;
     box-shadow:0 0 0 1px rgba(255,255,255,.1),0 0 44px rgba(225,29,46,.28),inset 0 0 22px rgba(225,29,46,.2);
@@ -109,7 +106,6 @@
   <div class="g-nick">papochkadeneg</div>
   <button class="go" id="enter" type="button"><span>Продолжить</span></button>
 </div>
-
 
 <script>
   const v=document.getElementById("v"),gate=document.getElementById("gate"),btn=document.getElementById("sound");
