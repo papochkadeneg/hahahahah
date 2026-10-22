@@ -34,6 +34,23 @@
     filter:drop-shadow(0 0 22px rgba(225,29,46,.4));animation:rise .9s cubic-bezier(.2,.7,.2,1) both}
   h1 span{display:block}
 
+  .bg::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;box-shadow:inset 0 0 180px rgba(225,29,46,0);transition:box-shadow 1.2s}
+  .ingame .bg::before{box-shadow:inset 0 0 180px rgba(225,29,46,.45)}
+
+  .dc{display:flex;align-items:center;gap:12px;align-self:flex-start;max-width:100%;min-height:56px;padding:10px 18px;border-radius:18px;
+    background:rgba(14,6,9,.55);color:var(--bone);border:1px solid rgba(255,255,255,.16);font:600 .95rem var(--text);text-align:left;cursor:pointer;
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);touch-action:manipulation;transition:transform .2s,background .2s}
+  .dc[hidden]{display:none}
+  .dc:active{transform:scale(.98)}
+  .dc:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  .dot{width:12px;height:12px;border-radius:50%;background:#747f8d;flex:none;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+  .dot.online{background:#23a55a}.dot.idle{background:#f0b232}.dot.dnd{background:#f23f43}
+  .dc-body{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .dc-top b{font-weight:800;opacity:.6;margin-right:6px}
+  .dc-act{font-size:.85rem;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dc img{border-radius:8px;flex:none;object-fit:cover;margin-left:auto}
+  @media (hover:hover){.dc:hover{background:rgba(40,16,22,.7)}}
+
   .hours{font-weight:600;font-size:1.05rem;opacity:.8;overflow-wrap:anywhere}
 
   .links{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
@@ -100,6 +117,7 @@
   @media (max-width:720px){
     .bg::after{background:linear-gradient(0deg,rgba(10,5,7,.92) 0%,rgba(10,5,7,.55) 50%,rgba(10,5,7,.3) 100%)}
     .page{justify-content:flex-end;gap:22px;padding-bottom:max(40px,calc(env(safe-area-inset-bottom) + 28px))}
+    .dc{align-self:stretch}
     .links{flex-direction:column;align-items:stretch}
     .btn{width:100%}
     .main{order:-1}
@@ -122,6 +140,14 @@
 <main class="page">
   <h1 aria-label="papochkadeneg"><span>papochka</span><span>deneg</span></h1>
   <p class="hours">хаххавхахвхахва</p>
+  <button class="dc" id="dc" type="button" hidden>
+    <span class="dot" id="dot"></span>
+    <span class="dc-body">
+      <span class="dc-top"><b>Discord</b><span id="dcname"></span></span>
+      <span class="dc-act" id="dcact" hidden></span>
+    </span>
+    <img id="dcart" alt="" width="40" height="40" hidden>
+  </button>
   <nav class="links">
     <a class="btn main" href="https://steamcommunity.com/id/wvwwwvwvww/" target="_blank" rel="noopener">
       <span data-t="main">Мой Steam</span>
@@ -148,8 +174,8 @@
   const L=(navigator.languages&&navigator.languages[0]||navigator.language||"en").toLowerCase();
   const ru=/^(ru|uk|be)/.test(L);
   const T=ru
-    ?{main:"Мой Steam",twink:"Твинк Steam",go:"Продолжить",on:"Звук включён",off:"Включить звук",desc:"я драчун"}
-    :{main:"My Steam",twink:"Smurf Steam",go:"Continue",on:"Sound on",off:"Turn sound on",desc:"i'm a brawler"};
+    ?{main:"Мой Steam",twink:"Твинк Steam",go:"Продолжить",on:"Звук включён",off:"Включить звук",copied:"скопировано",play:"Играет",listen:"Слушает",now:"только что",desc:"я драчун"}
+    :{main:"My Steam",twink:"Smurf Steam",go:"Continue",on:"Sound on",off:"Turn sound on",copied:"copied",play:"Playing",listen:"Listening",now:"just started",desc:"i'm a brawler"};
   document.documentElement.lang=ru?"ru":"en";
   document.querySelectorAll("[data-t]").forEach(e=>e.textContent=T[e.dataset.t]);
   document.querySelector('meta[name=description]').content=T.desc;
@@ -179,6 +205,52 @@
     navigator.mediaSession.setActionHandler("play",play);
     navigator.mediaSession.setActionHandler("pause",play);
   }
+
+  // Discord: ник по тапу + активность через Lanyard (нужно быть на сервере Lanyard)
+  const ID="786996255884050493";
+  const dc=document.getElementById("dc"),dot=document.getElementById("dot"),dcname=document.getElementById("dcname"),
+        dcact=document.getElementById("dcact"),dcart=document.getElementById("dcart");
+  let data=null,nick="",flash;
+  const fmt=ms=>{const m=Math.floor(ms/6e4);if(m<1)return T.now;const h=Math.floor(m/60);
+    return h?(ru?h+"ч "+m%60+"м":h+"h "+m%60+"m"):(ru?m+"м":m+"m")};
+  function render(){
+    if(!data)return;
+    nick=data.discord_user.username;
+    if(!flash)dcname.textContent=nick;
+    dot.className="dot "+(data.discord_status||"offline");
+    const game=(data.activities||[]).find(a=>a.type===0);
+    let line="",art="";
+    if(game){
+      line=T.play+" · "+game.name+(game.timestamps&&game.timestamps.start?" · "+fmt(Date.now()-game.timestamps.start):"");
+    }else if(data.listening_to_spotify&&data.spotify){
+      line=T.listen+" · "+data.spotify.song+" — "+data.spotify.artist;art=data.spotify.album_art_url||"";
+    }
+    dcact.textContent=line;dcact.hidden=!line;
+    if(art){if(dcart.src!==art)dcart.src=art}
+    dcart.hidden=!art;
+    document.body.classList.toggle("ingame",!!game);
+    dc.hidden=false;
+  }
+  async function load(){
+    if(document.hidden)return;
+    try{
+      const r=await fetch("https://api.lanyard.rest/v1/users/"+ID,{cache:"no-store"});
+      const j=await r.json();
+      if(j.success){data=j.data;render()}
+    }catch(e){}
+  }
+  async function copy(t){
+    try{await navigator.clipboard.writeText(t)}
+    catch(e){const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;opacity:0";document.body.appendChild(a);a.select();
+      try{document.execCommand("copy")}catch(_){}a.remove()}
+  }
+  dc.addEventListener("click",()=>{
+    if(!nick)return;
+    copy(nick);dcname.textContent=T.copied;clearTimeout(flash);
+    flash=setTimeout(()=>{flash=0;dcname.textContent=nick},1500);
+  });
+  load();setInterval(load,20000);setInterval(render,30000);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)load()});
 </script>
 </body>
 </html>
