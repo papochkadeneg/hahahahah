@@ -114,7 +114,7 @@
 <script>
   const v=document.getElementById("v"),gate=document.getElementById("gate"),btn=document.getElementById("sound");
   const sync=()=>btn.textContent=v.muted?"Включить звук":"Звук включён";
-  v.play().catch(()=>{});                       // за экраном входа видео идёт без звука
+  v.play().catch(()=>{});
   document.getElementById("enter").onclick=()=>{
     v.currentTime=0;v.muted=false;v.play().catch(()=>{});
     gate.classList.add("out");btn.hidden=false;sync();
